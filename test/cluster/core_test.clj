@@ -7,7 +7,7 @@
     (distance-func-euclidean [11 7] [8 3])
     5.0)))
 
-(deftest test-distance-hamming-func
+(deftest test-distance-func-hamming
   (is (=
-    (distance-hamming-func [12 21 43 55 23] [12 25 43 54 23])
+    (distance-func-hamming [12 21 43 55 23] [12 25 43 54 23])
     2)))
