@@ -40,7 +40,7 @@
 (def r-A 2.5)
 (def r-B (* 1.5 r-A))
 
-(defn init-potentials
+(defn initialize-potentials
   [points, distance-function]
   (let [coeff (/ 4 (Math/pow r-A 2))]
     (map
@@ -57,8 +57,22 @@
         })
       points)))
 
+(defn reduce-potentials [points basis distance-function]
+  (let [coeff (/ 4 (Math/pow r-B 2))]
+    (map
+      (fn [point]
+        {
+          :pos (:pos point)
+          :pot (-
+            (:pot point)
+            (*
+              (:pot basis)
+              (Math/pow Math/E (* (- coeff) (distance-function (:pos point) (:pos basis))))))
+        })
+      points)))
+
 (defn -main
   [filepath distance-name]
-  (println (init-potentials
-    (parse-file filepath)
-    (choose-distance-func distance-name))))
+  (let [distance-function (choose-distance-func distance-name)
+        init-points (initialize-potentials (parse-file filepath) distance-function)]
+    (println (reduce-potentials init-points (first init-points) distance-function))))
