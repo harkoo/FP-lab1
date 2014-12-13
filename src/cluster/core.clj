@@ -71,8 +71,34 @@
         })
       points)))
 
+(def e-up 0.5)
+(def e-down 0.15)
+
+(defn estimate-cluster-centers
+  [points centers distance-function init-center]
+  (let [point-with-max-potential (apply max-key #(:pot %) points)
+        init-center (or init-center point-with-max-potential)
+        init-center-potential (:pot init-center)
+        reduced-potential-points (reduce-potentials points point-with-max-potential distance-function)]
+    (cond
+      (> (:pot point-with-max-potential) (* e-up init-center-potential))
+      (recur reduced-potential-points (conj centers point-with-max-potential) distance-function init-center)
+
+      (< (:pot point-with-max-potential) (* e-down init-center-potential))
+      centers
+
+      (>= (+
+        (/
+          (Math/sqrt (apply min (map #(distance-function (:pos point-with-max-potential) (:pos %)) centers)))
+          r-A)
+        (/ (:pot point-with-max-potential) init-center-potential)) 1)
+      (recur reduced-potential-points (conj centers point-with-max-potential) distance-function init-center)
+
+      :else
+      (recur reduced-potential-points centers distance-function init-center))))
+
 (defn -main
   [filepath distance-name]
   (let [distance-function (choose-distance-func distance-name)
         init-points (initialize-potentials (parse-file filepath) distance-function)]
-    (println (reduce-potentials init-points (first init-points) distance-function))))
+    (doall (map println (estimate-cluster-centers init-points '() distance-function nil)))))
